@@ -2,6 +2,12 @@ import { TaskCard } from "@/components/tasks/TaskCard";
 
 import type { TaskPriority, TaskStatus } from "@prisma/client";
 
+type Category = {
+  id: string;
+  name: string;
+  color: string;
+};
+
 type Task = {
   id: string;
   taskNumber: number;
@@ -9,6 +15,7 @@ type Task = {
   priority: TaskPriority;
   dueDate: Date | null;
   assignee: { name: string } | null;
+  categories: Category[];
 };
 
 type KanbanColumnProps = {
