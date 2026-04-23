@@ -7,6 +7,7 @@ import { auth } from "@/lib/auth";
 import { KanbanBoard } from "@/components/board/KanbanBoard";
 import { CategoryFilter } from "@/components/board/CategoryFilter";
 import { CreateTaskDialog } from "@/components/tasks/CreateTaskDialog";
+import { ViewSwitcher } from "@/components/layout/ViewSwitcher";
 import { categoryFilterModeSchema } from "@/lib/validations/task";
 
 import type { Prisma } from "@prisma/client";
@@ -101,12 +102,13 @@ const BoardPage = async ({ params, searchParams }: Props) => {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-foreground">{project.name}</h1>
           <p className="text-sm text-muted-foreground">カンバンボード</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-3">
+          <ViewSwitcher projectId={projectId} active="board" />
           <Link
             href={`/projects/${projectId}/settings`}
             className="flex items-center gap-1 rounded-md border border-border px-3 py-2 text-sm text-foreground hover:bg-muted"
