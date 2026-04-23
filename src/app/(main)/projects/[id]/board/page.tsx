@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Settings } from "lucide-react";
 
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
@@ -107,6 +109,13 @@ const BoardPage = async ({ params, searchParams }: Props) => {
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <ViewSwitcher projectId={projectId} active="board" />
+          <Link
+            href={`/projects/${projectId}/settings`}
+            className="flex items-center gap-1 rounded-md border border-border px-3 py-2 text-sm text-foreground hover:bg-muted"
+          >
+            <Settings size={16} />
+            設定
+          </Link>
           {canCreate && (
             <CreateTaskDialog
               projectId={projectId}

@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { ProjectSettingsForm } from "@/components/projects/ProjectSettingsForm";
 import { DeleteProjectButton } from "@/components/projects/DeleteProjectButton";
+import { CategoryManager } from "@/components/categories/CategoryManager";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -32,6 +33,9 @@ const ProjectSettingsPage = async ({ params }: Props) => {
         members: {
           include: { user: { select: { id: true, name: true, email: true } } },
           orderBy: { createdAt: "asc" },
+        },
+        categories: {
+          orderBy: { name: "asc" },
         },
       },
     }),
@@ -79,6 +83,12 @@ const ProjectSettingsPage = async ({ params }: Props) => {
           canEdit={canEdit}
         />
       </section>
+
+      <CategoryManager
+        projectId={project.id}
+        initialCategories={project.categories}
+        canEdit={canEdit}
+      />
 
       <section className="rounded-lg border border-border bg-card p-6">
         <h2 className="mb-1 text-base font-semibold text-foreground">メンバー</h2>
