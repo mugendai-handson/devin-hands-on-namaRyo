@@ -9,6 +9,12 @@
 - **スタイル**: Tailwind CSS v4
 - **インフラ**: Docker Compose
 
+## ドキュメント
+
+- [API 仕様（OpenAPI 3.1）](docs/openapi.yaml)
+- [機能仕様書](docs/spec.md)
+- [ユーザーストーリー](docs/user-stories.md)
+
 ## セットアップ
 
 ### 前提条件
