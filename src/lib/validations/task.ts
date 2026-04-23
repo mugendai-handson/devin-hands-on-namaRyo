@@ -7,6 +7,10 @@ export const createTaskSchema = z.object({
   priority: z.enum(["URGENT", "HIGH", "MEDIUM", "LOW", "NONE"]).default("NONE"),
   assigneeId: z.string().optional().nullable(),
   dueDate: z.string().optional().nullable(),
+  categoryIds: z.array(z.string()).default([]),
 });
 
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
+
+export const categoryFilterModeSchema = z.enum(["and", "or"]).default("or");
+export type CategoryFilterMode = z.infer<typeof categoryFilterModeSchema>;

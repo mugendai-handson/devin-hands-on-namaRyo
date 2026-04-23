@@ -10,12 +10,19 @@ type Member = {
   user: { id: string; name: string };
 };
 
+type Category = {
+  id: string;
+  name: string;
+  color: string;
+};
+
 type CreateTaskDialogProps = {
   projectId: string;
   members: Member[];
+  categories: Category[];
 };
 
-export const CreateTaskDialog = ({ projectId, members }: CreateTaskDialogProps) => {
+export const CreateTaskDialog = ({ projectId, members, categories }: CreateTaskDialogProps) => {
   const [open, setOpen] = useState(false);
 
   if (!open) {
@@ -36,6 +43,7 @@ export const CreateTaskDialog = ({ projectId, members }: CreateTaskDialogProps) 
       <TaskForm
         projectId={projectId}
         members={members}
+        categories={categories}
         onClose={() => setOpen(false)}
       />
     </div>
