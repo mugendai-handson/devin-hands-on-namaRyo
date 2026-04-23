@@ -11,13 +11,20 @@ type Member = {
   user: { id: string; name: string };
 };
 
+type Category = {
+  id: string;
+  name: string;
+  color: string;
+};
+
 type TaskFormProps = {
   projectId: string;
   members: Member[];
+  categories: Category[];
   onClose?: () => void;
 };
 
-export const TaskForm = ({ projectId, members, onClose }: TaskFormProps) => {
+export const TaskForm = ({ projectId, members, categories, onClose }: TaskFormProps) => {
   const boundAction = createTask.bind(null, projectId);
   const [state, formAction, isPending] = useActionState<TaskFormState, FormData>(boundAction, null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -100,6 +107,32 @@ export const TaskForm = ({ projectId, members, onClose }: TaskFormProps) => {
           className="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         />
       </div>
+
+      {categories.length > 0 && (
+        <div>
+          <p className="mb-1 text-xs font-medium text-muted-foreground">カテゴリ</p>
+          <div className="flex flex-wrap gap-2">
+            {categories.map((cat) => (
+              <label
+                key={cat.id}
+                className="flex cursor-pointer items-center gap-1.5 rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground hover:bg-muted"
+              >
+                <input
+                  type="checkbox"
+                  name="categoryIds"
+                  value={cat.id}
+                  className="h-3.5 w-3.5 accent-primary"
+                />
+                <span
+                  className="inline-block h-2.5 w-2.5 rounded-full"
+                  style={{ backgroundColor: cat.color }}
+                />
+                {cat.name}
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="flex justify-end gap-2">
         {onClose && (

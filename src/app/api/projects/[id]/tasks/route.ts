@@ -116,6 +116,17 @@ export const POST = async (
       );
     }
 
+    // プロジェクトに属するカテゴリのみに限定
+    const validCategoryIds =
+      parsed.data.categoryIds.length > 0
+        ? (
+            await prisma.category.findMany({
+              where: { id: { in: parsed.data.categoryIds }, projectId },
+              select: { id: true },
+            })
+          ).map((c) => c.id)
+        : [];
+
     // 連番採番
     const lastTask = await prisma.task.findFirst({
       where: { projectId },
@@ -135,6 +146,12 @@ export const POST = async (
         projectId,
         reporterId: session.user.id,
         taskNumber: nextNumber,
+        categories: {
+          create: validCategoryIds.map((categoryId) => ({ categoryId })),
+        },
+      },
+      include: {
+        categories: { include: { category: true } },
       },
     });
 

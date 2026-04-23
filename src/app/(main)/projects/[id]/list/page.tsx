@@ -178,7 +178,11 @@ const ListPage = async ({ params, searchParams }: Props) => {
         <div className="flex flex-wrap items-center gap-3">
           <ViewSwitcher projectId={projectId} active="list" />
           {canCreate && (
-            <CreateTaskDialog projectId={projectId} members={project.members} />
+            <CreateTaskDialog
+              projectId={projectId}
+              members={project.members}
+              categories={categories}
+            />
           )}
         </div>
       </div>
