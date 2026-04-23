@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import { createProjectSchema } from "@/lib/validations/project";
+import {
+  createProjectSchema,
+  generateProjectKey,
+} from "@/lib/validations/project";
 
 import type { NextRequest } from "next/server";
 
@@ -85,7 +88,7 @@ export const POST = async (request: NextRequest) => {
       );
     }
 
-    const key = generateProjectKey(parsed.data.name);
+    const key = parsed.data.key ?? generateProjectKey(parsed.data.name);
 
     const project = await prisma.project.create({
       data: {
@@ -126,18 +129,4 @@ export const POST = async (request: NextRequest) => {
   }
 };
 
-/**
- * プロジェクト名からキーを自動生成する
- * 例: "Devin Task Board" → "DTB"
- */
-const generateProjectKey = (name: string): string => {
-  const words = name.trim().split(/\s+/);
-  if (words.length >= 2) {
-    return words
-      .map((w) => w[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 5);
-  }
-  return name.trim().toUpperCase().slice(0, 3);
-};
+
