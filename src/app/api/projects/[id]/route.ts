@@ -158,6 +158,7 @@ export const PATCH = async (
         ...(parsed.data.description !== undefined && {
           description: parsed.data.description,
         }),
+        ...(parsed.data.key !== undefined && { key: parsed.data.key }),
       },
       include: {
         owner: { select: { id: true, name: true } },
