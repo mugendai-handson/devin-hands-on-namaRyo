@@ -3,6 +3,12 @@ import { format } from "date-fns";
 
 import type { TaskPriority } from "@prisma/client";
 
+type TaskCategory = {
+  id: string;
+  name: string;
+  color: string;
+};
+
 type TaskCardProps = {
   task: {
     id: string;
@@ -11,6 +17,7 @@ type TaskCardProps = {
     priority: TaskPriority;
     dueDate: Date | null;
     assignee: { name: string } | null;
+    categories: TaskCategory[];
   };
   projectKey: string;
 };
@@ -38,6 +45,20 @@ export const TaskCard = ({ task, projectKey }: TaskCardProps) => {
       </div>
 
       <p className="text-sm font-medium text-card-foreground">{task.title}</p>
+
+      {task.categories.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1">
+          {task.categories.map((cat) => (
+            <span
+              key={cat.id}
+              className="rounded px-1.5 py-0.5 text-[10px] font-medium text-white"
+              style={{ backgroundColor: cat.color }}
+            >
+              {cat.name}
+            </span>
+          ))}
+        </div>
+      )}
 
       <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
         {task.dueDate ? (

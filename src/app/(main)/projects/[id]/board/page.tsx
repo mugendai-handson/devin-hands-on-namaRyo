@@ -3,14 +3,29 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { KanbanBoard } from "@/components/board/KanbanBoard";
+import { CategoryFilter } from "@/components/board/CategoryFilter";
 import { CreateTaskDialog } from "@/components/tasks/CreateTaskDialog";
+import { categoryFilterModeSchema } from "@/lib/validations/task";
+
+import type { Prisma } from "@prisma/client";
 
 type Props = {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ categories?: string; categoryMode?: string }>;
 };
 
-const BoardPage = async ({ params }: Props) => {
+const parseCategoryIds = (value: string | undefined): string[] => {
+  if (!value) return [];
+  return value
+    .split(",")
+    .map((v) => v.trim())
+    .filter(Boolean);
+};
+
+const BoardPage = async ({ params, searchParams }: Props) => {
   const { id: projectId } = await params;
+  const { categories: categoriesParam, categoryMode: categoryModeParam } = await searchParams;
+
   const session = await auth();
   if (!session?.user?.id) notFound();
 
@@ -20,6 +35,9 @@ const BoardPage = async ({ params }: Props) => {
       members: {
         include: { user: { select: { id: true, name: true } } },
       },
+      categories: {
+        orderBy: { name: "asc" },
+      },
     },
   });
 
@@ -28,13 +46,54 @@ const BoardPage = async ({ params }: Props) => {
   const currentMember = project.members.find((m) => m.userId === session.user!.id);
   if (!currentMember) notFound();
 
+  // フィルター条件をパース（プロジェクトに属する ID のみ採用）
+  const requestedIds = parseCategoryIds(categoriesParam);
+  const validCategoryIds = requestedIds.filter((id) =>
+    project.categories.some((c) => c.id === id),
+  );
+  // 不正値は default("or") にフォールバックさせる（500 を避けるため safeParse）
+  const parsedMode = categoryFilterModeSchema.safeParse(categoryModeParam ?? undefined);
+  const mode = parsedMode.success ? parsedMode.data : "or";
+
+  const categoryWhere: Prisma.TaskWhereInput | undefined =
+    validCategoryIds.length === 0
+      ? undefined
+      : mode === "and"
+        ? {
+            AND: validCategoryIds.map((categoryId) => ({
+              categories: { some: { categoryId } },
+            })),
+          }
+        : {
+            categories: { some: { categoryId: { in: validCategoryIds } } },
+          };
+
   const tasks = await prisma.task.findMany({
-    where: { projectId },
+    where: {
+      projectId,
+      ...(categoryWhere ?? {}),
+    },
     include: {
       assignee: { select: { name: true } },
+      categories: {
+        include: {
+          category: { select: { id: true, name: true, color: true } },
+        },
+      },
     },
     orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
   });
+
+  const tasksForBoard = tasks.map((t) => ({
+    id: t.id,
+    taskNumber: t.taskNumber,
+    title: t.title,
+    status: t.status,
+    priority: t.priority,
+    dueDate: t.dueDate,
+    assignee: t.assignee,
+    categories: t.categories.map((tc) => tc.category),
+  }));
 
   const canCreate = currentMember.role !== "VIEWER";
 
@@ -46,11 +105,17 @@ const BoardPage = async ({ params }: Props) => {
           <p className="text-sm text-muted-foreground">カンバンボード</p>
         </div>
         {canCreate && (
-          <CreateTaskDialog projectId={projectId} members={project.members} />
+          <CreateTaskDialog
+            projectId={projectId}
+            members={project.members}
+            categories={project.categories}
+          />
         )}
       </div>
 
-      <KanbanBoard tasks={tasks} projectKey={project.key} />
+      <CategoryFilter categories={project.categories} />
+
+      <KanbanBoard tasks={tasksForBoard} projectKey={project.key} />
     </div>
   );
 };
