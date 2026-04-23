@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Settings } from "lucide-react";
 
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
@@ -45,9 +47,18 @@ const BoardPage = async ({ params }: Props) => {
           <h1 className="text-2xl font-bold text-foreground">{project.name}</h1>
           <p className="text-sm text-muted-foreground">カンバンボード</p>
         </div>
-        {canCreate && (
-          <CreateTaskDialog projectId={projectId} members={project.members} />
-        )}
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/projects/${projectId}/settings`}
+            className="flex items-center gap-1 rounded-md border border-border px-3 py-2 text-sm text-foreground hover:bg-muted"
+          >
+            <Settings size={16} />
+            設定
+          </Link>
+          {canCreate && (
+            <CreateTaskDialog projectId={projectId} members={project.members} />
+          )}
+        </div>
       </div>
 
       <KanbanBoard tasks={tasks} projectKey={project.key} />
