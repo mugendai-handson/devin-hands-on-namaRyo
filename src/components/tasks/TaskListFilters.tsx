@@ -44,6 +44,14 @@ export const TaskListFilters = ({ members, categories }: TaskListFiltersProps) =
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
+  const navigate = (params: URLSearchParams) => {
+    const qs = params.toString();
+    const url = qs ? `${pathname}?${qs}` : pathname;
+    startTransition(() => {
+      router.replace(url);
+    });
+  };
+
   const updateParam = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
     if (value === "") {
@@ -53,9 +61,7 @@ export const TaskListFilters = ({ members, categories }: TaskListFiltersProps) =
     }
     // フィルター変更時はページをリセット
     params.delete("page");
-    startTransition(() => {
-      router.replace(`${pathname}?${params.toString()}`);
-    });
+    navigate(params);
   };
 
   const clearAll = () => {
@@ -64,9 +70,7 @@ export const TaskListFilters = ({ members, categories }: TaskListFiltersProps) =
     const order = searchParams.get("order");
     if (sortBy) params.set("sortBy", sortBy);
     if (order) params.set("order", order);
-    startTransition(() => {
-      router.replace(`${pathname}?${params.toString()}`);
-    });
+    navigate(params);
   };
 
   const status = searchParams.get("status") ?? "";

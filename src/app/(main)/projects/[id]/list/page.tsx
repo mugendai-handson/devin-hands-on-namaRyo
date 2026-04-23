@@ -71,11 +71,22 @@ const buildOrderBy = (
   sortBy: SortKey,
   order: SortOrder,
 ): Prisma.TaskOrderByWithRelationInput[] => {
+  const orderBy: Prisma.TaskOrderByWithRelationInput[] = [];
+
   if (sortBy === "dueDate") {
     // NULL を末尾に寄せる
-    return [{ dueDate: { sort: order, nulls: "last" } }, { createdAt: "desc" }];
+    orderBy.push({ dueDate: { sort: order, nulls: "last" } });
+  } else {
+    orderBy.push({ [sortBy]: order } as Prisma.TaskOrderByWithRelationInput);
   }
-  return [{ [sortBy]: order } as Prisma.TaskOrderByWithRelationInput];
+
+  // ページ間で順序が揺れないように決定的なタイブレーカを常に付与
+  if (sortBy !== "createdAt") {
+    orderBy.push({ createdAt: "desc" });
+  }
+  orderBy.push({ id: "desc" });
+
+  return orderBy;
 };
 
 const buildSearchParamsString = (
@@ -130,12 +141,17 @@ const ListPage = async ({ params, searchParams }: Props) => {
     where.categories = { some: { categoryId } };
   }
 
-  const [categories, totalCount, tasks] = await Promise.all([
-    prisma.category.findMany({
-      where: { projectId },
-      orderBy: { name: "asc" },
-    }),
-    prisma.task.count({ where }),
+  // `page` が範囲外のとき tasks が空にならないよう、count 後に currentPage を確定してから findMany を実行する
+  const categoriesPromise = prisma.category.findMany({
+    where: { projectId },
+    orderBy: { name: "asc" },
+  });
+  const totalCount = await prisma.task.count({ where });
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+  const currentPage = Math.min(Math.max(1, page), totalPages);
+
+  const [categories, tasks] = await Promise.all([
+    categoriesPromise,
     prisma.task.findMany({
       where,
       include: {
@@ -148,12 +164,9 @@ const ListPage = async ({ params, searchParams }: Props) => {
       },
       orderBy: buildOrderBy(sortBy, order),
       take: PAGE_SIZE,
-      skip: (page - 1) * PAGE_SIZE,
+      skip: (currentPage - 1) * PAGE_SIZE,
     }),
   ]);
-
-  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
   const canCreate = currentMember.role !== "VIEWER";
   const searchParamsString = buildSearchParamsString(sp);
 

@@ -211,7 +211,9 @@ export const TaskListTable = ({
                         <span
                           key={category.id}
                           className="inline-flex rounded px-1.5 py-0.5 text-xs text-foreground"
-                          style={{ backgroundColor: `${category.color}33` }}
+                          style={{
+                            backgroundColor: `color-mix(in oklch, ${category.color} 20%, transparent)`,
+                          }}
                         >
                           {category.name}
                         </span>
