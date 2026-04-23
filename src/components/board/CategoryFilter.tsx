@@ -11,8 +11,6 @@ type Category = {
 
 type CategoryFilterProps = {
   categories: Category[];
-  selectedIds: string[];
-  mode: "and" | "or";
 };
 
 const buildQuery = (params: URLSearchParams): string => {
@@ -20,10 +18,26 @@ const buildQuery = (params: URLSearchParams): string => {
   return qs ? `?${qs}` : "";
 };
 
-export const CategoryFilter = ({ categories, selectedIds, mode }: CategoryFilterProps) => {
+const parseCategoryIds = (value: string | null): string[] => {
+  if (!value) return [];
+  return value
+    .split(",")
+    .map((v) => v.trim())
+    .filter(Boolean);
+};
+
+export const CategoryFilter = ({ categories }: CategoryFilterProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+
+  // 選択状態・モードは URL から都度導出し、連打時に stale な prop を参照しないようにする
+  const categoryIdSet = new Set(categories.map((c) => c.id));
+  const selectedIds = parseCategoryIds(searchParams.get("categories")).filter((id) =>
+    categoryIdSet.has(id),
+  );
+  const modeParam = searchParams.get("categoryMode");
+  const mode: "and" | "or" = modeParam === "and" ? "and" : "or";
 
   const updateParams = (next: URLSearchParams) => {
     router.replace(`${pathname}${buildQuery(next)}`, { scroll: false });

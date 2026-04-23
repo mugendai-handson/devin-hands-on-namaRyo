@@ -22,6 +22,16 @@ export const createTask = async (
     return { error: "認証が必要です" };
   }
 
+  // プロジェクトメンバー & 権限チェック（API ルートと同じルール）
+  const member = await prisma.projectMember.findUnique({
+    where: {
+      projectId_userId: { projectId, userId: session.user.id },
+    },
+  });
+  if (!member || member.role === "VIEWER") {
+    return { error: "タスクを作成する権限がありません" };
+  }
+
   const raw = {
     title: formData.get("title"),
     description: formData.get("description") || undefined,

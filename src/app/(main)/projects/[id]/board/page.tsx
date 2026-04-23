@@ -51,7 +51,9 @@ const BoardPage = async ({ params, searchParams }: Props) => {
   const validCategoryIds = requestedIds.filter((id) =>
     project.categories.some((c) => c.id === id),
   );
-  const mode = categoryFilterModeSchema.parse(categoryModeParam ?? undefined);
+  // 不正値は default("or") にフォールバックさせる（500 を避けるため safeParse）
+  const parsedMode = categoryFilterModeSchema.safeParse(categoryModeParam ?? undefined);
+  const mode = parsedMode.success ? parsedMode.data : "or";
 
   const categoryWhere: Prisma.TaskWhereInput | undefined =
     validCategoryIds.length === 0
@@ -111,11 +113,7 @@ const BoardPage = async ({ params, searchParams }: Props) => {
         )}
       </div>
 
-      <CategoryFilter
-        categories={project.categories}
-        selectedIds={validCategoryIds}
-        mode={mode}
-      />
+      <CategoryFilter categories={project.categories} />
 
       <KanbanBoard tasks={tasksForBoard} projectKey={project.key} />
     </div>
