@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { KanbanBoard } from "@/components/board/KanbanBoard";
 import { CreateTaskDialog } from "@/components/tasks/CreateTaskDialog";
+import { ViewSwitcher } from "@/components/layout/ViewSwitcher";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -40,14 +41,17 @@ const BoardPage = async ({ params }: Props) => {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-foreground">{project.name}</h1>
           <p className="text-sm text-muted-foreground">カンバンボード</p>
         </div>
-        {canCreate && (
-          <CreateTaskDialog projectId={projectId} members={project.members} />
-        )}
+        <div className="flex flex-wrap items-center gap-3">
+          <ViewSwitcher projectId={projectId} active="board" />
+          {canCreate && (
+            <CreateTaskDialog projectId={projectId} members={project.members} />
+          )}
+        </div>
       </div>
 
       <KanbanBoard tasks={tasks} projectKey={project.key} />
